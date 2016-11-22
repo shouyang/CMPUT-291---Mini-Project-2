@@ -38,6 +38,8 @@ from closure import *
 def NF3decomp(FDependencies):
     # Input Transformation - Get minimum versions of the cover req.
     Dependencies = min_closure(FDependencies)
+    print ("Minimal Cover:")
+    print ( Dependencies)
     # Output Template
     Output = []
     # For each distinct X collect all elements relating to X. eg. X -> Y X -> Z = X -> YZ
@@ -103,11 +105,11 @@ def Get_SuperKey(FDependencies):
             return FD[0]
 
 
-T = [('AB', 'CDE'),('C', 'AD'),('D', 'AE'),('B', 'F')]
+#T = [('AB', 'CDE'),('C', 'AD'),('D', 'AE'),('B', 'F')]
 
-print ( NF3decomp(T) )
-E = [("ABH","CK"),("A","D"),("C","E"),("BGH","F"),("F","AD"),("E","F"),("BH","E")]
+#print ( NF3decomp(T) )
+#E = [("ABH","CK"),("A","D"),("C","E"),("BGH","F"),("F","AD"),("E","F"),("BH","E")]
 
-print ( NF3decomp(E) )
+#print ( NF3decomp(E) )
 
 #print ( Get_SuperKey(T) )
