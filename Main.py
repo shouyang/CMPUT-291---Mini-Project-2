@@ -67,7 +67,8 @@ def Get_FD_Table_Info(conn,table_name):
         Row = (LHS,RHS)
         
         Row_List[i] = Row
-    print (Row_List)
+
+    return Row_List
 
 def Make_Numeric_Lookup(iterable):
     out = []
@@ -76,6 +77,104 @@ def Make_Numeric_Lookup(iterable):
         out.append( ( str(i+1) , iterable[i]) )
 
     return out
+
+def Partition_Table(conn,FDependencies, Base_Table):
+    '''
+    Function Implementation
+    
+    This function takes a connection, a set of functional dependencies and a base table 
+    and makes partitions of the base table into a partition per functional dependency. 
+    
+    
+    '''
+    # Adjust Base_Table Schema To Prepare For Conversion
+    Base_Table_Name = Base_Table[0]
+    Base_Table_SQL  = Base_Table[1]
+    
+    Base_Table_SQL = Base_Table_SQL.replace("CREATE TABLE","")
+    Base_Table_SQL = Base_Table_SQL.replace("(","")
+    Base_Table_SQL = Base_Table_SQL.replace(")","")
+    Base_Table_SQL = Base_Table_SQL.replace(Base_Table_Name,"")
+    
+    Base_Table_SQL = Base_Table_SQL.strip()
+    Base_Table_SQL = Base_Table_SQL.split()
+    
+    '''
+    Notes
+    
+    At this point Base_Table_Name is the name of the Table To Be Converted
+    
+    Base_Table_SQL is a list where one element is the Varable Name, the following
+    is the Variable Type. As such there are 2*n number of variables in this list.
+    
+    '''
+    
+    # Generate Queries To Perform Decomposition 
+    
+    
+    # Create Table Name Template
+    Partition_Name = "Output" + Base_Table_Name
+    Partition_Name = Partition_Name.replace("Input","") # This converts the input table name into the Output Table Name
+    Partition_Name = Partition_Name + "_" + "VarTemp"   # Safest Choice(?)
+    
+    '''
+    For each Functional Dependency Create Three Queries
+    1. Partition Table Storing Partitioned Data, this creates and imports data to the new table.
+    2. FDS Table
+    3. Insert Entry Query For FDS Table
+    '''
+    for Dependency in FDependencies:
+         
+        # LHS & RHS - Used To Determine Variable Set, Also Used To Fill Output_FDS Table
+        LHS = Dependency[0]
+        RHS = Dependency[1]
+        
+        # Variables - Used To Change Temp Table Name and Variables For Partition
+        Variables = LHS + RHS 
+        
+        # Make Paritioning Query
+        Partition_Query = "CREATE TABLE " + Partition_Name + " AS SELECT vVariables FROM " + Base_Table_Name
+        Partition_Query = Partition_Query.replace("VarTemp",Variables)
+                
+        Variables = list(Variables)
+        Variables = ",".join(Variables)
+                        
+        Partition_Query = Partition_Query.replace("vVariables",Variables) + ";"
+        
+        # Make Associated FDS Table Query
+        Variables = LHS + RHS
+        
+        Partition_FDS_Query = "CREATE TABLE " + Partition_Name
+        Partition_FDS_Query = Partition_FDS_Query.replace("VarTemp",Variables)
+        Partition_FDS_Query = Partition_FDS_Query + " (LHS TEXT,RHS TEXT);"
+        Partition_FDS_Query = Partition_FDS_Query.replace("Output_", "Output_FDS_")        
+        
+        # Make FDS Table Insert Query
+        Partition_FDS_Insert_Query = Partition_FDS_Query.replace("CREATE TABLE ","INSERT INTO ") # Note This is done on Partition_FDS_Query
+        Partition_FDS_Insert_Query = Partition_FDS_Insert_Query.replace(" (LHS TEXT,RHS TEXT);"," VALUES (vLHS,vRHS);")
+        Partition_FDS_Insert_Query = Partition_FDS_Insert_Query.replace("vLHS", "'" + LHS + "'")
+        Partition_FDS_Insert_Query = Partition_FDS_Insert_Query.replace("vRHS", "'" + RHS + "'")
+        
+        # Print For User's Sake
+        print("A Partition Set:")
+        print(Partition_Query)
+        print(Partition_FDS_Query)
+        print(Partition_FDS_Insert_Query)
+        print("Partition End - ! There May Be More Partitions!")
+        print("\n")
+        
+        # Execute Queries
+        conn.execute(Partition_Query)
+        conn.commit()
+        
+        conn.execute(Partition_FDS_Query)
+        conn.commit()
+
+        conn.execute(Partition_FDS_Insert_Query)
+        conn.commit()
+        
+        print ("3rd Normal Form Decompsition Finished")
+        return 1
 #===============================================================================
 # Main Functions
 
@@ -137,9 +236,29 @@ def function_B(conn):
     if isQuit == True: # Quit Option Selected
         return
     else: # Go Get Decomposition Information
-        usr_sel = FD_Tables_Table[ int(usr_sel)-1]
+        usr_sel_FD = FD_Tables_Table[ int(usr_sel)-1]
         
-        Get_FD_Table_Info(conn,usr_sel)
+        Row_List = Get_FD_Table_Info(conn,usr_sel_FD)
+        
+        print ("Database Dependencies: ")
+        print (Row_List)
+    
+        # Push Row_List To Get Module Function For Decomposition
+        NF3_Dependencies  = NF3decomp(Row_List)
+        
+        print ("NF3 Dependencies: ")
+        print(NF3_Dependencies)
+        
+        # Ask For Input Before Performing Decomposition
+        isQuit,X = Get_Checked_Input("Perform Decomposition (Y/N)?",["Y"],"N")
+        
+        if isQuit:
+            return
+        else:
+            usr_sel_Table = Tables[ int(usr_sel)-1 ]
+            Partition_Table(conn,NF3_Dependencies,usr_sel_Table)
+            return
+        
 def main():
     # Create Database Connection
     path = raw_input("Enter Database Path Or Leave Blank For Default: ")
@@ -150,6 +269,7 @@ def main():
    
     # Handle User Input
     while True:
+        print("\n\n")
         print("Options")
         print("A - Read About Relation")
         print("B - Perform  3NF Decomposition on a Relation")
