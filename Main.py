@@ -1,5 +1,6 @@
 import sqlite3
 from NF3decomp import *  
+import closure
 # Author: Daniel Zhou
 # November 2016
 
@@ -258,6 +259,116 @@ def function_B(conn):
             usr_sel_Table = Tables[ int(usr_sel)-1 ]
             Partition_Table(conn,NF3_Dependencies,usr_sel_Table)
             return
+def function_D(conn):
+    cursor = conn.cursor()
+    FD_Tables = Get_FD_Tables_List(conn)
+    usr_attributes = ""
+    usr_FD = []
+    
+    # Remove SQL Create Table Portion of The FD_Tables List
+    FD_Tables_ = []
+    
+    for row in FD_Tables:
+        FD_Tables_.append( row[0] )
+        
+    FD_Tables = Make_Numeric_Lookup( FD_Tables_ )    
+    
+    FD_Tables_Number,FD_Tables = zip(*FD_Tables)
+    
+    while True:
+    
+        print ("Currently Functional Dependencies (X,Y) = X -> Y: ")
+        for FD in usr_FD:
+            print(FD)
+    
+        print ("Currently Selected Attributes: ")
+        print (usr_attributes)
+    
+        print("\n\n")
+        
+        print ("Options")
+        print ("0 - Add Attributes")
+        print ("1 - Add Functional Dependencies By Table")
+        print ("2 - Add Functional Dependencies By Input")
+        print ("3 - Compute Attribute Closure")
+        
+        isQuit,usr_option = Get_Checked_Input("",  ["0","1","2","3"] ,"Q")
+    
+        # Option 0
+        if usr_option == "0":
+            while True:
+                usr_input_attribute = raw_input("Add Attribute: ")    
+                
+                print ( usr_input_attribute )
+                
+                usr_input_confirm = raw_input("Confirm (Y/N)?")
+                if usr_input_confirm == "Y":
+                    usr_attributes = usr_attributes + usr_input_attribute
+                    break
+                else:
+                    break    
+                
+        # Option 1
+        elif usr_option == "1":
+            # Print all FD Tables In Database
+            for i in range(0, len(FD_Tables) ):
+                print ( FD_Tables_Number[i] + " - " +  FD_Tables[i])
+    
+            # Allow user to select one of these tables based upon the displayed value.
+            isQuit,usr_table_index = Get_Checked_Input("Select Table By Number: ",FD_Tables_Number,"Q")
+            usr_table = FD_Tables[ int(usr_table_index) - 1] # Index Conversion
+            
+            if isQuit:
+                break
+            
+            # Get FD's From Table
+            query = "SELECT * FROM vTable"
+            query = query.replace("vTable", usr_table)
+            
+            cursor.execute(query)
+            
+            for row in cursor:
+                LHS = str(row[0])
+                RHS = str(row[1])
+                
+                LHS = LHS.replace(",","")
+                RHS = RHS.replace(",","")
+            
+                usr_FD.append( (LHS,RHS) )
+            
+        # Option 2
+        elif usr_option == "2":
+            while True:
+                usr_input_LHS = raw_input("Add FD LHS: ")    
+                usr_input_RHS = raw_input("Add FD RHS: ")
+                
+                print ( (usr_input_LHS,usr_input_RHS) )
+                
+                usr_input_confirm = raw_input("Confirm (Y/N)?")
+                if usr_input_confirm == "Y":
+                    usr_FD.append( (usr_input_LHS,usr_input_RHS) )
+                    break
+                else:
+                    break            
+        # Option 3
+        elif usr_option == "3":
+            closure_set = closure.closure(usr_attributes,usr_FD)
+            
+            closure_string = "".join(closure_set)
+            
+            print(closure_string)
+            
+            return 1
+        
+        elif isQuit == True:
+            return 1
+
+    
+    
+
+
+
+
         
 def main():
     # Create Database Connection
@@ -289,7 +400,7 @@ def main():
             if User_input == "C":
                 pass
             if User_input == "D":
-                pass
+                function_D(conn)
             if User_input == "E":
                 pass
         else:
