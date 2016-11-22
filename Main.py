@@ -1,6 +1,7 @@
 import sqlite3
 from NF3decomp import *  
 import closure
+from bcnfdecomp import *
 # Author: Daniel Zhou
 # November 2016
 
@@ -259,6 +260,78 @@ def function_B(conn):
             usr_sel_Table = Tables[ int(usr_sel)-1 ]
             Partition_Table(conn,NF3_Dependencies,usr_sel_Table)
             return
+        
+def function_C(conn):
+    # Display List Of Decomposable Tables
+    Tables    = Get_Tables_List(conn)
+    FD_Tables = Get_FD_Tables_List(conn)
+    
+    # Remove SQL Create Table Portion of The FD_Tables List
+    FD_Tables_ = []
+    
+    for row in FD_Tables:
+        FD_Tables_.append( row[0] )
+        
+    FD_Tables = Make_Numeric_Lookup( FD_Tables_ )
+    
+    # Display Tables
+    print ("Tables")
+    for row in Tables:
+        print (row[0])
+    
+    # Display Decomposable Tables
+    print ("Tables containing decomposition information.")
+    for row in FD_Tables:
+        print ( row[0] + " - " + row[1] )
+        
+    # Get User Input
+    FD_Tables_Number,FD_Tables_Table = zip(*FD_Tables)
+
+    isQuit,usr_sel = Get_Checked_Input("Select Number: ", FD_Tables_Number, "Q")
+
+    if isQuit == True: # Quit Option Selected
+        return
+    else: # Go Get Decomposition Information
+        usr_sel_FD = FD_Tables_Table[ int(usr_sel)-1]
+        
+        Row_List = Get_FD_Table_Info(conn,usr_sel_FD)
+        
+        print ("Database Dependencies: ")
+        print (Row_List)
+        
+        formatList = ''
+        for i in range(len(Row_List)):
+            formatList += Row_List[i][0]+'-'+Row_List[i][1]+','
+        formatList = formatList[:-1] 
+        rList = []
+        
+        dList = ''
+        for r in range(len(Row_List)):
+            rList.append(Row_List[r][0])
+            rList.append(Row_List[r][1])
+            
+        newSet = ','.join(set(list(''.join(rList))))
+        
+        #print(newSet)
+        #print(rList)
+    
+        # Push Row_List To Get Module Function For Decomposition
+        BCNFdepends  = BCNFdecomp(formatList,newSet)
+        
+        print ("BCNF Dependencies: ")
+        print(BCNFdepends)
+        
+        # Ask For Input Before Performing Decomposition
+        isQuit,X = Get_Checked_Input("Perform Decomposition (Y/N)?",["Y"],"N")
+        
+        if isQuit:
+            return
+        else:
+            usr_sel_Table = Tables[ int(usr_sel)-1 ]
+            Partition_Table(conn,BCNFdepends,usr_sel_Table)
+            return
+                
+    
 def function_D(conn):
     cursor = conn.cursor()
     FD_Tables = Get_FD_Tables_List(conn)
@@ -398,7 +471,7 @@ def main():
             if User_input == "B":
                 function_B(conn)
             if User_input == "C":
-                pass
+                function_C(conn)
             if User_input == "D":
                 function_D(conn)
             if User_input == "E":
