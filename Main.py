@@ -1,8 +1,8 @@
 import sqlite3
 from NF3decomp import *  
-import closure
+from closure import *
 from bcnfdecomp import *
-# Author: Daniel Zhou
+# Author: Daniel Zhou, Jordan Vogel, Christopher Saunders
 # November 2016
 
 #===============================================================================
@@ -20,6 +20,53 @@ def Get_Checked_Input(Prompt, Accepted_Values, QuitOption):
             print ( "Options: ")
             print ( " ".join(Accepted_Values) )
             continue
+        
+def dependPreserving(FD1, FD2):
+    #Part 1, Checking whether all FDs of FD1 are present in FD2
+    for i in range(len(FD1)):
+        FDclosure = closure(FD1[i][0], FD2)
+        check = True
+        for x in range(len(FD1[i][0])):
+            if not (FD1[i][0][x] in FDclosure): #Iterates through the left hand string
+                check = False
+
+        for x in range(len(FD1[i][1])): #Iterates through the right hand string
+            if not (FD1[i][1][x] in FDclosure):
+                check = False
+
+    if check:
+        print("All FDs of F1 are present in F2")
+    else:
+        print("Not all FDs of F1 are present in F2")
+
+
+    #Part 2, Checking whether all FDs of FD2 are present in FD1
+    for i in range(len(FD2)):
+        FDclosure = closure(FD2[i][0], FD1)#AM HERE
+        check2 = True
+        for x in range(len(FD2[i][0])):
+            if not (FD2[i][0][x] in FDclosure): #Iterates through the left hand string
+                check2 = False
+
+        for x in range(len(FD2[i][1])): #Iterates through the right hand string
+            if not (FD2[i][1][x] in FDclosure):
+                check2 = False
+    if check2:
+        print("All FDs of F2 are present in F1")
+    else:
+        print("Not all FDs of F2 are present in F1")
+
+    if check and check2:
+        print("F1 and F2 are equivalent!")
+        rValue = "Decomposition was dependency preserving"
+    else:
+        print("F1 and F2 are not equivalent!")
+        rValue = "Decomposition was not dependency preserving"
+
+        
+        
+    return rValue
+            
         
 def Get_Tables_List(conn):
     cursor = conn.cursor()
@@ -175,8 +222,8 @@ def Partition_Table(conn,FDependencies, Base_Table):
         conn.execute(Partition_FDS_Insert_Query)
         conn.commit()
         
-        print ("3rd Normal Form Decompsition Finished")
-        return 1
+        print ("Decompsition Finished")
+    return 1
 #===============================================================================
 # Main Functions
 
@@ -329,7 +376,12 @@ def function_C(conn):
         else:
             usr_sel_Table = Tables[ int(usr_sel)-1 ]
             Partition_Table(conn,BCNFdepends,usr_sel_Table)
+            print(dependPreserving(BCNFdepends,Row_List))
             return
+        
+    
+    
+        
                 
     
 def function_D(conn):
@@ -435,6 +487,89 @@ def function_D(conn):
         
         elif isQuit == True:
             return 1
+        
+def function_E(conn):
+    #Gets first set of FD's "FD1"
+    User_input = raw_input("Please enter the name of the table containing the first set of FDs(F1): ")
+    cursor = conn.cursor()
+    running = True
+    temp = []
+    FD1 = []
+    while not temp:
+        cursor.execute("SELECT * FROM %s;" %(User_input))
+        for i in cursor:
+            temp.append(i)
+        for i in range(len(temp)):
+            left = str(temp[i][0])
+            right = str(temp[i][1])
+            left = left.replace(',','')
+            right = right.replace(',','')
+            FD1.append((left,right))
+
+
+    #Gets second set of FD's "FD2"
+    User_input = raw_input("Please enter the name of the table containing the second set of FDs(F2): ")
+    cursor = conn.cursor()
+    running = True
+    temp = []
+    FD2 = []
+    while not temp: #To try to loop until a good input is found (NOT WORKING)
+        cursor.execute("SELECT * FROM %s;" %(User_input))
+        for i in cursor:
+            temp.append(i)
+        for i in range(len(temp)):
+            left = str(temp[i][0])
+            right = str(temp[i][1])
+            left = left.replace(',','')
+            right = right.replace(',','')
+            FD2.append((left,right))
+
+                
+    #Meat of the program: Actually checks shit
+
+    #Part 1, Checking whether all FDs of FD1 are present in FD2
+    for i in range(len(FD1)):
+        FDclosure = closure(FD1[i][0], FD2)
+        check = True
+        for x in range(len(FD1[i][0])):
+            if not (FD1[i][0][x] in FDclosure): #Iterates through the left hand string
+                check = False
+
+        for x in range(len(FD1[i][1])): #Iterates through the right hand string
+            if not (FD1[i][1][x] in FDclosure):
+                check = False
+
+    if check:
+        print("All FDs of F1 are present in F2")
+    else:
+        print("Not all FDs of F1 are present in F2")
+
+
+    #Part 2, Checking whether all FDs of FD2 are present in FD1
+    for i in range(len(FD2)):
+        FDclosure = closure(FD2[i][0], FD1)#AM HERE
+        check2 = True
+        for x in range(len(FD2[i][0])):
+            if not (FD2[i][0][x] in FDclosure): #Iterates through the left hand string
+                check2 = False
+
+        for x in range(len(FD2[i][1])): #Iterates through the right hand string
+            if not (FD2[i][1][x] in FDclosure):
+                check2 = False
+    if check2:
+        print("All FDs of F2 are present in F1")
+    else:
+        print("Not all FDs of F2 are present in F1")
+
+    if check and check2:
+        print("F1 and F2 are equivalent!")
+    else:
+        print("F1 and F2 are not equivalent!")
+
+        
+        
+
+    pass    
 
     
     
@@ -475,7 +610,7 @@ def main():
             if User_input == "D":
                 function_D(conn)
             if User_input == "E":
-                pass
+                function_E(conn)
         else:
             break
     # Handle Closure
