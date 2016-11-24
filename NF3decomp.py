@@ -73,6 +73,17 @@ def NF3decomp(FDependencies):
         if (x,y) not in Output: # Duplicate Checker - Note that string comparison incorporates order.
             # The above set -> list -> sorted list, is to remove order for comparison.
             Output.append( (x,y) )
+            
+    # Add back suuper key if needed
+    FD_superkey = Get_SuperKey(FDependencies)
+    FD_superkey_inOutput = False
+
+    for FD in Output:
+        if set(FD[0]) == set(FD_superkey):
+            FD_superkey_inOutput = True
+    
+    if not FD_superkey_inOutput:
+        Output.append( (FD_superkey,"") )        
     return Output
 
 # Assumes that each the functional dependencies completely covers all 

@@ -176,13 +176,20 @@ def Partition_Table(conn,FDependencies, Base_Table):
         Variables = LHS + RHS 
         
         # Make Paritioning Query
-        Partition_Query = "CREATE TABLE " + Partition_Name + " AS SELECT vVariables FROM " + Base_Table_Name
+        Partition_Query = "CREATE TABLE " + Partition_Name + " AS SELECT DISTINCT vVariables FROM " + Base_Table_Name
         Partition_Query = Partition_Query.replace("VarTemp",Variables)
                 
         Variables = list(Variables)
         Variables = ",".join(Variables)
                         
         Partition_Query = Partition_Query.replace("vVariables",Variables) + ";"
+	
+	Alter_Query = "CREATE UNIQUE INDEX " + Partition_Name + "_PRIMARYKEY" + " ON " + Partition_Name + "("
+        LHS_str = list(LHS)
+        LHS_str = ",".join(LHS_str)	
+        
+        Alter_Query = Alter_Query + LHS_str + " );"
+	Alter_Query = Alter_Query.replace("VarTemp",Variables.replace(",",""))	
         
         # Make Associated FDS Table Query
         Variables = LHS + RHS
@@ -201,6 +208,7 @@ def Partition_Table(conn,FDependencies, Base_Table):
         # Print For User's Sake
         print("A Partition Set:")
         print(Partition_Query)
+	print(Alter_Query)
         print(Partition_FDS_Query)
         print(Partition_FDS_Insert_Query)
         print("Partition End - ! There May Be More Partitions!")
@@ -209,6 +217,9 @@ def Partition_Table(conn,FDependencies, Base_Table):
         # Execute Queries
         conn.execute(Partition_Query)
         conn.commit()
+	
+	conn.execute(Alter_Query)
+	conn.commit()
         
         conn.execute(Partition_FDS_Query)
         conn.commit()
