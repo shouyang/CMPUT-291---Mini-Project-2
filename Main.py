@@ -483,46 +483,64 @@ def function_D(conn):
             return 1
         
 def function_E(conn):
-    #Gets first set of FD's "FD1"
-    User_input = raw_input("Please enter the name of the table containing the first set of FDs(F1): ")
-    cursor = conn.cursor()
+   #Gets first set of FD's "FD1"
     running = True
-    temp = []
     FD1 = []
-    while not temp:
-        cursor.execute("SELECT * FROM %s;" %(User_input))
-        for i in cursor:
-            temp.append(i)
-        for i in range(len(temp)):
-            left = str(temp[i][0])
-            right = str(temp[i][1])
-            left = left.replace(',','')
-            right = right.replace(',','')
-            FD1.append((left,right))
+    FD2 = []
+    print("====================")
+    print("Please enter a list of tables for FD1: (Enter blank to continue)")
+    while running:
+        User_input = raw_input()
+        if User_input == '' and FD1:
+            running = False
+        elif User_input == '' and not FD1:
+        	print("Please enter at least one table")
+        if running and not User_input == '':
+                cursor = conn.cursor()
+                temp = []
+                while not temp:
+                    cursor.execute("SELECT * FROM %s;" %(User_input))
+                    for i in cursor:
+                            temp.append(i)
+                    for i in range(len(temp)):
+                            left = str(temp[i][0])
+                            right = str(temp[i][1])
+                            left = left.replace(',','')
+                            right = right.replace(',','')
+                            FD1.append((left,right))
 
 
     #Gets second set of FD's "FD2"
-    User_input = raw_input("Please enter the name of the table containing the second set of FDs(F2): ")
-    cursor = conn.cursor()
     running = True
-    temp = []
-    FD2 = []
-    while not temp: #To try to loop until a good input is found (NOT WORKING)
-        cursor.execute("SELECT * FROM %s;" %(User_input))
-        for i in cursor:
-            temp.append(i)
-        for i in range(len(temp)):
-            left = str(temp[i][0])
-            right = str(temp[i][1])
-            left = left.replace(',','')
-            right = right.replace(',','')
-            FD2.append((left,right))
+    print("====================")
+    print("Please enter a list of tables for FD2: (Enter blank to continue)")
+    while running:
+        User_input = raw_input()
+        if User_input == '' and FD2:
+            running = False
+        elif User_input == '' and not FD2:
+        	print("Please enter at least one table")
+        if running and not User_input == '':
+            cursor = conn.cursor()
+            
+            temp = []
+            while not temp: #To try to loop until a good input is found (NOT WORKING)
+                cursor.execute("SELECT * FROM %s;" %(User_input))
+                for i in cursor:
+                    temp.append(i)
+                for i in range(len(temp)):
+                    left = str(temp[i][0])
+                    right = str(temp[i][1])
+                    left = left.replace(',','')
+                    right = right.replace(',','')
+                    FD2.append((left,right))
 
                 
     #Meat of the program: Actually checks shit
-
+    print("====================")
     #Part 1, Checking whether all FDs of FD1 are present in FD2
     for i in range(len(FD1)):
+
         FDclosure = closure(FD1[i][0], FD2)
         check = True
         for x in range(len(FD1[i][0])):
