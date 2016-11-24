@@ -52,10 +52,10 @@ def dependPreserving(FD1, FD2):
 
     if check and check2:
         #print("F1 and F2 are equivalent!")
-        rValue = "Decomposition was dependency preserving"
+        rValue = "Decomposition was functional dependency preserving"
     else:
         #print("F1 and F2 are not equivalent!")
-        rValue = "Decomposition was not dependency preserving"
+        rValue = "Decomposition was not functional dependency preserving"
 
         
         
