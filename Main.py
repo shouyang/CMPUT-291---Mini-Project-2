@@ -22,6 +22,7 @@ def Get_Checked_Input(Prompt, Accepted_Values, QuitOption):
             continue
         
 def dependPreserving(FD1, FD2):
+    rValue = ''
     #Part 1, Checking whether all FDs of FD1 are present in FD2
     for i in range(len(FD1)):
         FDclosure = closure(FD1[i][0], FD2)
@@ -34,10 +35,6 @@ def dependPreserving(FD1, FD2):
             if not (FD1[i][1][x] in FDclosure):
                 check = False
 
-    if check:
-        print("All FDs of F1 are present in F2")
-    else:
-        print("Not all FDs of F1 are present in F2")
 
 
     #Part 2, Checking whether all FDs of FD2 are present in FD1
@@ -51,16 +48,13 @@ def dependPreserving(FD1, FD2):
         for x in range(len(FD2[i][1])): #Iterates through the right hand string
             if not (FD2[i][1][x] in FDclosure):
                 check2 = False
-    if check2:
-        print("All FDs of F2 are present in F1")
-    else:
-        print("Not all FDs of F2 are present in F1")
+
 
     if check and check2:
-        print("F1 and F2 are equivalent!")
+        #print("F1 and F2 are equivalent!")
         rValue = "Decomposition was dependency preserving"
     else:
-        print("F1 and F2 are not equivalent!")
+        #print("F1 and F2 are not equivalent!")
         rValue = "Decomposition was not dependency preserving"
 
         
