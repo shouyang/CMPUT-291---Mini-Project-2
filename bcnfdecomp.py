@@ -59,9 +59,9 @@ def formFDs(fds):
 
 def BCNFdecomp(fds,attrs):
 #if __name__ == "__main__":
-	#attrs = 'A,B,C,D,E,F,G,H,K'
+	attrs = 'A,B,C,D,E,F,G,H,K'
 	attrs = Set(attrs.split(','))
-	#fds = 'ABH-CK,A-D,C-E,BGH-F,F-AD,E-F,BH-E'
+	fds = 'ABH-CK,A-D,C-E,BGH-F,F-AD,E-F,BH-E'
 	fds = fds.split(',')
 	
 	fds = getFDs(fds)
@@ -86,7 +86,9 @@ def BCNFdecomp(fds,attrs):
 						#print(temp,'temp')
 						result.append(temp)
 					
+					
 					break
+	#print(result)
 	for i in reversed(result):
 		final.append(i)
 		if i == '':

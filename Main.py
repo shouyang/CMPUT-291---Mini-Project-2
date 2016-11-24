@@ -357,8 +357,12 @@ def function_C(conn):
     
         # Push Row_List To Get Module Function For Decomposition
         BCNFdepends  = BCNFdecomp(formatList,newSet)
-	superkey = (Get_SuperKey(BCNFdepends))
-	BCNFdepends.append((superkey,''))
+	superkeyA = set(Get_SuperKey(Row_List))
+	superkeyB = set(Get_SuperKey(BCNFdepends))
+	superkeyC = superkeyA.union(superkeyB)
+	superkeyC = ''.join(superkeyC)
+	
+	BCNFdepends.append((superkeyC,''))
         
         print ("BCNF Dependencies: ")
         print(BCNFdepends)
