@@ -93,11 +93,8 @@ def BCNFdecomp(fds,attrs):
 			final.remove(i)
 			break
 	finalList = []
-	tupList = []
 	for i in range(len(final)):
-		#print(str(final[i]))
 		newStr = tuple(final[i].split('-'))
-		#print(newStr)
 		finalList.append((newStr))
 	#print(final)
 	#print(finalList)

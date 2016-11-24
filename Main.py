@@ -339,7 +339,6 @@ def function_C(conn):
         
         print ("Database Dependencies: ")
         print (Row_List)
-        
         formatList = ''
         for i in range(len(Row_List)):
             formatList += Row_List[i][0]+'-'+Row_List[i][1]+','
@@ -358,6 +357,8 @@ def function_C(conn):
     
         # Push Row_List To Get Module Function For Decomposition
         BCNFdepends  = BCNFdecomp(formatList,newSet)
+	superkey = (Get_SuperKey(BCNFdepends))
+	BCNFdepends.append((superkey,''))
         
         print ("BCNF Dependencies: ")
         print(BCNFdepends)
