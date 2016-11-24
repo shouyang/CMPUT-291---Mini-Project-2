@@ -497,9 +497,11 @@ def function_E(conn):
     print("Please enter a list of tables for FD1: (Enter blank to continue)")
     while running:
         User_input = raw_input()
-        if User_input == '':
+        if User_input == '' and FD1:
             running = False
-        if running:
+        elif User_input == '' and not FD1:
+        	print("Please enter at least one table")
+        if running and not User_input == '':
                 cursor = conn.cursor()
                 temp = []
                 while not temp:
@@ -520,9 +522,11 @@ def function_E(conn):
     print("Please enter a list of tables for FD2: (Enter blank to continue)")
     while running:
         User_input = raw_input()
-        if User_input == '':
+        if User_input == '' and FD2:
             running = False
-        if running:
+        elif User_input == '' and not FD2:
+        	print("Please enter at least one table")
+        if running and not User_input == '':
             cursor = conn.cursor()
             
             temp = []
